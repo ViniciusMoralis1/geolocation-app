@@ -1,11 +1,10 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 
 export default StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F79431'
   },
   text: {
     fontSize: 22,
@@ -13,9 +12,8 @@ export default StyleSheet.create({
   },
   map: {
     flex: 1, 
-    width: 400,
-    height: 400
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height
   }
   
-
 });

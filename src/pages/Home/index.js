@@ -16,8 +16,8 @@ export default function Home() {
           title: "Preciso da sua permissão",
           message:
             "Sua permissão é necessária para podermos acessar sua localização",
-          buttonNeutral: "Ask Me Later",
-          buttonNegative: "Cancel",
+          buttonNeutral: "Pergunte depois",
+          buttonNegative: "Cancelar",
           buttonPositive: "OK"
         }
       );
@@ -52,11 +52,11 @@ export default function Home() {
     <View style={styles.container}>
       <MapView
         style={styles.map}
-        initialRegion={{
+        region={{
           latitude: latitude,
           longitude: longitude,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421
+          latitudeDelta: 1.1,
+          longitudeDelta: 1.1
         }}
         zoomEnabled = {true}
         showsUserLocation={true}
