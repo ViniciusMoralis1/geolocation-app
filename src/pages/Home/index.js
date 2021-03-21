@@ -134,8 +134,8 @@ export default function Home() {
         "Sincronizando",
         "Aguarde um momento...",
         [{
-          text: "OK",
-          style: "cancel",
+          text: 'OK',
+          style: 'default',
         }]
       )
       let canSync = [];
@@ -145,10 +145,17 @@ export default function Home() {
         }
       })
       console.log("can sync" + canSync)
-      //estou mandando sem o e-mail como parametro pois não estava chegando e-mail
+      //estou mandando sem o e-mail como parametro pois não estava chegando nenhum e-mail
       const response = await api.post('/hooks/catch/472009/09rj5z/', canSync);
-
-      if(response.status == "success"){
+      if(response.data.status == "success"){
+        Alert.alert(
+          'Sucesso',
+          "Suas localizações estão sincronizadas.",
+          [{
+            text: 'OK',
+            style: 'default'
+          }]
+        )
         canSync.map(location => {
           location.sync = true
         })
@@ -166,16 +173,18 @@ export default function Home() {
         zoomEnabled={true} 
         showsUserLocation={true}
       >
-        {locations.map(location => {
-          <Marker coordinate={{ latitude: -27.192831, longitude: -49.6378192 }} pinColor={'tan'}>
-            <Callout>
-              <View style={styles.callout}>
-                <Text style={[styles.text, { fontWeight: 'bold'}]}>{location.annotation}</Text>
-                <Text style={styles.text}>{location.datetime}</Text>
-              </View>
-            </Callout>
-          </Marker>
-        })}
+        { locations.length > 0 ? (
+          locations.map(location => (
+            <Marker coordinate={{ latitude: location.latitude, longitude: location.longitude }} pinColor={'tan'}>
+              <Callout>
+                <View style={styles.callout}>
+                  <Text style={[styles.text, { fontWeight: 'bold'}]}>{location.annotation}</Text>
+                  <Text style={styles.text}>{location.datetime}</Text>
+                </View>
+              </Callout>
+            </Marker>
+          ))
+        ) : <></>}
       </MapView>
       <TouchableOpacity activeOpacity={0.7} style={styles.buttonSync} onPress={syncLocations}>
         <Icon name="refresh-cw" size={24} color="#FFF"/>
