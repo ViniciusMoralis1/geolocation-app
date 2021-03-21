@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, PermissionsAndroid, TouchableOpacity, View, TextInput, Text, Keyboard } from 'react-native';
+import { SafeAreaView, PermissionsAndroid, TouchableOpacity, View, TextInput, Text, Keyboard, Alert } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import Local from '@react-native-community/geolocation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Feather';
+
+import api from '../../services/api';
 
 import styles from './styles';
 
@@ -11,7 +13,7 @@ export default function Home() {
   const [currentRegion, setCurrentRegion] = useState(null);
   const [annotation, setAnnotation] = useState('');
   const [date, setDate] = useState(null);
-  const [locations, setLocations] = useState([{}]);
+  const [locations, setLocations] = useState([]);
 
   useEffect(() => {
     async function requestGeolocationPermission() {
@@ -58,8 +60,9 @@ export default function Home() {
         console.log("Erro: " + err);
       }
     }
+
     requestGeolocationPermission();
-    getLocationsSaved();
+    // getLocationsSaved();
   }, []);
 
   function handleRegionChanged(region){
@@ -107,6 +110,41 @@ export default function Home() {
   }
 
   async function syncLocations() {
+    console.log(locations);
+    if(locations.length == 0){
+      Alert.alert(
+        "Erro",
+        "Não há localizações salvas para sincronizar",
+        [{
+          text: "OK",
+          style: "cancel",
+        }]
+      )
+    } else {
+      Alert.alert(
+        "Sincronizando",
+        "Aguarde um momento...",
+        [{
+          text: "OK",
+          style: "cancel",
+        }]
+      )
+      let canSync = [];
+      locations.map(location => {
+        if(!locantion.sync) {
+          canSync.push(location);
+        }
+      })
+      //estou mandando sem o e-mail como parametro pois não estava chegando e-mail
+      const response = await api.post('/hooks/catch/472009/09rj5z/', canSync);
+
+      if(response.status == "success"){
+        canSync.map(location => {
+          location.sync = true
+        })
+        setLocations([...locations, ...canSync]);
+      }
+    }
     console.log('sync locations')
   };
 
@@ -119,11 +157,13 @@ export default function Home() {
         zoomEnabled={true} 
         showsUserLocation={true}
       >
-        {/* {locations.map(location => {
-          <Marker coordinate={{ latitude: location.latitude, longitude: location.longitude }} pinColor={'tan'}>
-
-          </Marker>
-        })} */}
+        {locations.map(location => {
+          {location.sync ? (
+            <Marker coordinate={{ latitude: location.latitude, longitude: location.longitude }} pinColor={'green'}/>
+          ) : (
+            <Marker coordinate={{ latitude: location.latitude, longitude: location.longitude }} pinColor={'tan'}/>
+          )}
+        })}
       </MapView>
       <TouchableOpacity activeOpacity={0.7} style={styles.buttonSync} onPress={syncLocations}>
         <Icon name="refresh-cw" size={24} color="#FFF"/>
