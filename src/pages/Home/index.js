@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StatusBar, PermissionsAndroid } from 'react-native';
+import { SafeAreaView, PermissionsAndroid, TouchableOpacity, Text } from 'react-native';
 import MapView  from 'react-native-maps';
 import Local from '@react-native-community/geolocation';
+import Icon from 'react-native-vector-icons/Feather';
+
 import styles from './styles';
 
 export default function Home() {
   const [latitude, setLatitude] = useState(-23.583776);
   const [longitude, setLongitude] = useState(-46.588805);
+  const [locations, setLocations] = useState([]);
 
   const requestGeolocationPermission = async () => {
     try {
@@ -26,7 +29,7 @@ export default function Home() {
         Local.getCurrentPosition((pos) => {
           setLatitude(pos.coords.latitude);
           setLongitude(pos.coords.longitude);
-          console.log("latitude: " + latitude + "longitude: " + longitude)
+          console.log("latitude: " + latitude + " longitude: " + longitude)
         }), 
         (err) => {
           console.log("Erro: " + err)
@@ -48,8 +51,16 @@ export default function Home() {
     requestGeolocationPermission();
   }, []);
 
+  function addLocation(){
+    console.log('add location')
+  };
+
+  async function syncLocations() {
+    console.log('sync locations')
+  };
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <MapView
         style={styles.map}
         region={{
@@ -61,6 +72,13 @@ export default function Home() {
         zoomEnabled = {true}
         showsUserLocation={true}
       />
-    </View>
+      <TouchableOpacity activeOpacity={0.7} style={styles.buttonSync} onPress={syncLocations}>
+        <Icon name="refresh-cw" size={24} color="#FFF"/>
+      </TouchableOpacity>
+
+      <TouchableOpacity activeOpacity={0.7} style={styles.buttonAdd} onPress={addLocation}>
+        <Icon name="plus" size={28} color="#FFF"/>
+      </TouchableOpacity>
+    </SafeAreaView>
   )
 };
