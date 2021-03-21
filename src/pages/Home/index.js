@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView, PermissionsAndroid, TouchableOpacity, View, TextInput, Text, Keyboard } from 'react-native';
-import MapView  from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 import Local from '@react-native-community/geolocation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Feather';
@@ -11,7 +11,7 @@ export default function Home() {
   const [currentRegion, setCurrentRegion] = useState(null);
   const [annotation, setAnnotation] = useState('');
   const [date, setDate] = useState(null);
-  const [locations, setLocations] = useState([]);
+  const [locations, setLocations] = useState([{}]);
 
   useEffect(() => {
     async function requestGeolocationPermission() {
@@ -51,9 +51,8 @@ export default function Home() {
 
     async function getLocationsSaved() {
       try {
-        const stored = await AsyncStorage.getItem('@locations').then(() => {
-          setLocations(stored);
-          console.log(locations);
+        await AsyncStorage.getItem('@locations').then((obj) => {
+          setLocations([...locations, obj]);
         })
       } catch(err) {
         console.log("Erro: " + err);
@@ -71,36 +70,41 @@ export default function Home() {
     return null;
   }
 
-  async function storeData(){
-    try{
-      if(annotation.length() == 0 || date == null){
-        return false;
-      }
-      const data = JSON.stringify({
-        "latitude": currentRegion.latitude,
-        "longitude": currentRegion.longitude,
-        "annotation": annotation,
-        "datetime": date
-      });
-      await AsyncStorage.setItem('@locations', data).then(() => {
-        setLocations(data);
-        console.log("locations " + locations);
-        Keyboard.dismiss();
-
-      });
-    } catch(err){
-      console.log("Erro: " + err);
-    }
-  }
-
   function addLocation(){
     let today = new Date();
     setDate(("00" + today.getDate()).slice(-2) + ':' + ("00" + (today.getMonth() + 1)).slice(-2)
       + ':' + ("00" + today.getFullYear()).slice(-2) + ' ' + ("00" + today.getHours()).slice(-2)
       + ':' + ("00" + today.getMinutes()).slice(-2) + ':' + ("00" + today.getSeconds()).slice(-2));
-    console.log(date);
-    storeData();
+    storeData(currentRegion.latitude, currentRegion.longitude, annotation, date);
   };
+
+  async function storeData(latitude, longitude, annotation, date){
+    try{
+      if(annotation == '' || date == null){
+        return false;
+      }
+      let data = JSON.stringify({
+        "latitude": latitude,
+        "longitude": longitude,
+        "annotation": annotation,
+        "datetime": date,
+        "sync": false
+      });
+      if (locations){
+        setLocations([...locations, data]);
+      } else {
+        setLocations(data);
+      }
+      console.log("locations " + locations);
+      let jsonValue = JSON.stringify(locations);
+      await AsyncStorage.setItem('@locations', jsonValue).then(() => {
+        Keyboard.dismiss();
+        setAnnotation('');
+      });
+    } catch(err){
+      console.log("Erro: " + err);
+    }
+  }
 
   async function syncLocations() {
     console.log('sync locations')
@@ -114,7 +118,13 @@ export default function Home() {
         style={styles.map} 
         zoomEnabled={true} 
         showsUserLocation={true}
-      />
+      >
+        {/* {locations.map(location => {
+          <Marker coordinate={{ latitude: location.latitude, longitude: location.longitude }} pinColor={'tan'}>
+
+          </Marker>
+        })} */}
+      </MapView>
       <TouchableOpacity activeOpacity={0.7} style={styles.buttonSync} onPress={syncLocations}>
         <Icon name="refresh-cw" size={24} color="#FFF"/>
       </TouchableOpacity>
