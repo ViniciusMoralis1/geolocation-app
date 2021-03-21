@@ -41,7 +41,7 @@ export default StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'flex-end',
-    backgroundColor: '#7823A8',
+    backgroundColor: '#199792',
     elevation: 1,
     bottom: 2,
   },

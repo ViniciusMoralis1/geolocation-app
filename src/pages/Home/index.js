@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, PermissionsAndroid, TouchableOpacity, View, TextInput, Text } from 'react-native';
+import { SafeAreaView, PermissionsAndroid, TouchableOpacity, View, TextInput, Text, Keyboard } from 'react-native';
 import MapView  from 'react-native-maps';
 import Local from '@react-native-community/geolocation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Feather';
 
 import styles from './styles';
 
 export default function Home() {
   const [currentRegion, setCurrentRegion] = useState(null);
-  const [annotation, setAnnotation] = useState(null);
+  const [annotation, setAnnotation] = useState('');
+  const [date, setDate] = useState(null);
   const [locations, setLocations] = useState([]);
 
   useEffect(() => {
@@ -46,7 +48,19 @@ export default function Home() {
         console.warn(err);
       }
     }
+
+    async function getLocationsSaved() {
+      try {
+        const stored = await AsyncStorage.getItem('@locations').then(() => {
+          setLocations(stored);
+          console.log(locations);
+        })
+      } catch(err) {
+        console.log("Erro: " + err);
+      }
+    }
     requestGeolocationPermission();
+    getLocationsSaved();
   }, []);
 
   function handleRegionChanged(region){
@@ -57,8 +71,35 @@ export default function Home() {
     return null;
   }
 
+  async function storeData(){
+    try{
+      if(annotation.length() == 0 || date == null){
+        return false;
+      }
+      const data = JSON.stringify({
+        "latitude": currentRegion.latitude,
+        "longitude": currentRegion.longitude,
+        "annotation": annotation,
+        "datetime": date
+      });
+      await AsyncStorage.setItem('@locations', data).then(() => {
+        setLocations(data);
+        console.log("locations " + locations);
+        Keyboard.dismiss();
+
+      });
+    } catch(err){
+      console.log("Erro: " + err);
+    }
+  }
+
   function addLocation(){
-    console.log('add location')
+    let today = new Date();
+    setDate(("00" + today.getDate()).slice(-2) + ':' + ("00" + (today.getMonth() + 1)).slice(-2)
+      + ':' + ("00" + today.getFullYear()).slice(-2) + ' ' + ("00" + today.getHours()).slice(-2)
+      + ':' + ("00" + today.getMinutes()).slice(-2) + ':' + ("00" + today.getSeconds()).slice(-2));
+    console.log(date);
+    storeData();
   };
 
   async function syncLocations() {
@@ -79,8 +120,8 @@ export default function Home() {
       </TouchableOpacity>
 
       <View style={styles.addForm}>
-        <TextInput style={styles.addInput} placeholder="Digite sua anotação aqui..." multiline={true} returnKeyType="none" onChangeText={setAnnotation} />
-        <TouchableOpacity activeOpacity={0.7} style={styles.buttonAdd} onPress={() => {}}>
+        <TextInput style={styles.addInput} placeholder="Digite sua anotação aqui..." multiline={true} value={annotation} onChangeText={setAnnotation} />
+        <TouchableOpacity activeOpacity={0.7} style={styles.buttonAdd} onPress={addLocation}>
           <Icon name="plus" size={28} color="#FFF"/>
         </TouchableOpacity>
       </View>
