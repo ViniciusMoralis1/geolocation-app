@@ -60,5 +60,11 @@ export default StyleSheet.create({
       height: 3
     },
     marginRight: 15
+  },
+  callout: {
+    width: 120,
+  },
+  text: {
+    fontSize: 16,
   }
 });
