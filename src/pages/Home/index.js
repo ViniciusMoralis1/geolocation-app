@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, PermissionsAndroid, TouchableOpacity, Text } from 'react-native';
+import { SafeAreaView, PermissionsAndroid, TouchableOpacity, View, TextInput, Text } from 'react-native';
 import MapView  from 'react-native-maps';
 import Local from '@react-native-community/geolocation';
 import Icon from 'react-native-vector-icons/Feather';
@@ -8,6 +8,7 @@ import styles from './styles';
 
 export default function Home() {
   const [currentRegion, setCurrentRegion] = useState(null);
+  const [annotation, setAnnotation] = useState(null);
   const [locations, setLocations] = useState([]);
 
   useEffect(() => {
@@ -66,15 +67,23 @@ export default function Home() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <MapView onRegionChangeComplete={handleRegionChanged} initialRegion={currentRegion} style={styles.map} zoomEnabled={true} showsUserLocation={true}
+      <MapView 
+        onRegionChangeComplete={handleRegionChanged} 
+        initialRegion={currentRegion} 
+        style={styles.map} 
+        zoomEnabled={true} 
+        showsUserLocation={true}
       />
       <TouchableOpacity activeOpacity={0.7} style={styles.buttonSync} onPress={syncLocations}>
         <Icon name="refresh-cw" size={24} color="#FFF"/>
       </TouchableOpacity>
 
-      <TouchableOpacity activeOpacity={0.7} style={styles.buttonAdd} onPress={addLocation}>
-        <Icon name="plus" size={28} color="#FFF"/>
-      </TouchableOpacity>
+      <View style={styles.addForm}>
+        <TextInput style={styles.addInput} placeholder="Digite sua anotação aqui..." multiline={true} returnKeyType="none" onChangeText={setAnnotation} />
+        <TouchableOpacity activeOpacity={0.7} style={styles.buttonAdd} onPress={() => {}}>
+          <Icon name="plus" size={28} color="#FFF"/>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   )
 };
