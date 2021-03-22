@@ -14,6 +14,7 @@ export default function Home() {
   const [annotation, setAnnotation] = useState('');
   const [date, setDate] = useState(null);
   const [locations, setLocations] = useState([]);
+  const [pinColor,  setPinColor] = useState('green');
 
   useEffect(() => {
     async function requestGeolocationPermission() {
@@ -174,8 +175,9 @@ export default function Home() {
         showsUserLocation={true}
       >
         { locations.length > 0 ? (
-          locations.map(location => (
-            <Marker coordinate={{ latitude: location.latitude, longitude: location.longitude }} pinColor={'tan'}>
+          locations.map(location => {
+            {location.sync ? setPinColor('tan') : setPinColor('green')}
+            <Marker coordinate={{ latitude: location.latitude, longitude: location.longitude }} pinColor={pinColor}>
               <Callout>
                 <View style={styles.callout}>
                   <Text style={[styles.text, { fontWeight: 'bold'}]}>{location.annotation}</Text>
@@ -183,7 +185,7 @@ export default function Home() {
                 </View>
               </Callout>
             </Marker>
-          ))
+          })
         ) : <></>}
       </MapView>
       <TouchableOpacity activeOpacity={0.7} style={styles.buttonSync} onPress={syncLocations}>
