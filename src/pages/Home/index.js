@@ -14,7 +14,6 @@ export default function Home() {
   const [annotation, setAnnotation] = useState('');
   const [date, setDate] = useState(null);
   const [locations, setLocations] = useState([]);
-  const [pinColor,  setPinColor] = useState('green');
 
   useEffect(() => {
     async function requestGeolocationPermission() {
@@ -55,7 +54,11 @@ export default function Home() {
     async function getLocationsSaved() {
       try {
         await AsyncStorage.getItem('@locations').then((obj) => {
-          setLocations([...locations, obj]);
+          if(locations){
+            setLocations([...locations, obj]);
+          } else{
+            setLocations(obj);
+          }
         })
       } catch(err) {
         console.log("Erro: " + err);
@@ -97,13 +100,14 @@ export default function Home() {
       if(annotation == '' || date == null){
         return false;
       }
-      let data = JSON.stringify({
+      let data = {
         "latitude": latitude,
         "longitude": longitude,
         "annotation": annotation,
         "datetime": date,
-        "sync": false
-      });
+        "sync": false,
+        "color": "green"
+      };
       if (locations){
         setLocations([...locations, data]);
       } else {
@@ -120,7 +124,6 @@ export default function Home() {
   }
 
   async function syncLocations() {
-    console.log(locations);
     if(locations.length == 0){
       Alert.alert(
         "Erro",
@@ -145,22 +148,26 @@ export default function Home() {
           canSync.push(location);
         }
       })
-      console.log("can sync" + canSync)
       //estou mandando sem o e-mail como parametro pois não estava chegando nenhum e-mail
-      const response = await api.post('/hooks/catch/472009/09rj5z/', canSync);
-      if(response.data.status == "success"){
-        Alert.alert(
-          'Sucesso',
-          "Suas localizações estão sincronizadas.",
-          [{
-            text: 'OK',
-            style: 'default'
-          }]
-        )
-        canSync.map(location => {
-          location.sync = true
-        })
-        setLocations([...locations, ...canSync]);
+      try{
+        const response = await api.post('/hooks/catch/472009/09rj5z/', canSync);
+        if(response.data.status == "success"){
+          Alert.alert(
+            'Sucesso',
+            "Suas localizações estão sincronizadas.",
+            [{
+              text: 'OK',
+              style: 'default'
+            }]
+          )
+          canSync.map(location => {
+            location.sync = true
+            location.color = "tan"
+          })
+          setLocations([...locations, ...canSync]);
+        }
+      }catch(err){
+        console.log("erro: " + err);
       }
     }
   };
@@ -175,9 +182,9 @@ export default function Home() {
         showsUserLocation={true}
       >
         { locations.length > 0 ? (
-          locations.map(location => {
-            {location.sync ? setPinColor('tan') : setPinColor('green')}
-            <Marker coordinate={{ latitude: location.latitude, longitude: location.longitude }} pinColor={pinColor}>
+          locations.map((location) => {
+            { location != null ? (
+              <Marker coordinate={{ latitude: location.latitude, longitude: location.longitude }} pinColor={location.color}>
               <Callout>
                 <View style={styles.callout}>
                   <Text style={[styles.text, { fontWeight: 'bold'}]}>{location.annotation}</Text>
@@ -185,7 +192,9 @@ export default function Home() {
                 </View>
               </Callout>
             </Marker>
-          })
+            )
+            : <></>
+          }})
         ) : <></>}
       </MapView>
       <TouchableOpacity activeOpacity={0.7} style={styles.buttonSync} onPress={syncLocations}>
